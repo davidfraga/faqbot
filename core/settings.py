@@ -46,22 +46,26 @@ class ChatSettings:
 
     def _set_prompt(self):
         prompt_template = """
-                        Sua única função é atuar como um assistente de FAQ preciso. Sua tarefa é responder à pergunta do usuário BASEANDO-SE ESTRITA E UNICAMENTE no CONTEXTO fornecido.
+            Sua única função é atuar como um assistente de FAQ preciso. Sua tarefa é responder à pergunta do usuário BASEANDO-SE ESTRITA E UNICAMENTE no CONTEXTO fornecido.
+            Leve em consideração as seguintes situações:
+            - Se durante a conversa o usuário tiver mencionado seu nome, use esse nome ao iniciar sua resposta para torná-la mais pessoal.
+            - Se o usuário fizer apenas uma saudação, responda naturalmente, informando que você está ali para tirar as dúvidas do usuário.
+            - Se o usuário apenas agradecer, retribua o agradecimento.
+            - Se o usuário se despedir, responda naturalmente, informando que está à disposição a qualquer momento caso apareça mais alguma dúvida.
+            - Se NÃO souber a resposta ou estiver FORA DO CONTEXTO, peça desculpas, explicando que não tem conhecimento suficiente para responder essa dúvida.
+            
+            NÃO USE nenhum conhecimento prévio ou externo. Sua base de conhecimento está limitada ao que está no CONTEXTO 
 
-                        Se durante a conversa o usuário tiver mencionado seu nome, use esse nome ao iniciar sua resposta para torná-la mais pessoal.
+            CONTEXTO:
+            {context}
 
-                        NÃO USE nenhum conhecimento prévio ou externo. Sua base de conhecimento está limitada ao que está no CONTEXTO 
+            PERGUNTA:
+            {input}
 
-                        CONTEXTO:
-                        {context}
-
-                        PERGUNTA:
-                        {input}
-
-                        INSTRUÇÕES DE FORMATAÇÃO:
-                        Siga estritamente as instruções de formatação abaixo para a sua resposta.
-                        {format_instructions}
-                        """
+            INSTRUÇÕES DE FORMATAÇÃO:
+            Siga estritamente as instruções de formatação abaixo para a sua resposta.
+            {format_instructions}
+        """
 
         self.parser = PydanticOutputParser(pydantic_object=FormattedLLMAnswer)
         self.prompt = ChatPromptTemplate.from_template(
@@ -72,116 +76,3 @@ class ChatSettings:
     def update_settings(self):
         self._build()
 
-        """
-        combine_docs_chain = load_qa_chain(
-            llm=ChatGroq(temperature=0, model="llama-3.1-8b-instant",groq_api_key=config("GROQ_API_KEY")),  # Use seu modelo LLM aqui
-            chain_type="stuff",  # Escolha o tipo apropriado: "stuff", "map_reduce", etc.
-            prompt=prompt
-        )
-        
-        
-
-        self.qa_chain = ConversationalRetrievalChain(
-            retriever=retriever, memory=memory, combine_docs_chain=combine_docs_chain
-        )
-        """
-
-# OLD VERSION
-'''
-import os
-import time
-
-from decouple import config
-from langchain_core.output_parsers import PydanticOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_groq import ChatGroq
-from langchain.chains import RetrievalQA
-from pydantic import BaseModel, Field
-from langchain_mongodb.chat_message_histories import MongoDBChatMessageHistory
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain
-
-from intent_router import IntentRouter
-from db.vectorstore import get_or_build_vectorstore
-
-
-class FormattedLLMAnswer(BaseModel):
-    """Estrutura de dados para a resposta do bot com rastreamento de contexto."""
-
-    answer: str = Field(description="A resposta em texto a ser enviada para o usuário.")
-    found_context: bool = Field(
-        description="Indica se o contexto fornecido foi suficiente para responder à pergunta. Defina como 'False' se o contexto estiver vazio ou não contiver a resposta."
-    )
-
-
-class ChatSettings():
-
-    def __init__(self, session_id: str = "default_session"):
-        time1 = time.time()
-        os.environ["GROQ_API_KEY"] = config("GROQ_API_KEY")
-
-        prompt_template = """
-        Sua única função é atuar como um assistente de FAQ preciso. Sua tarefa é responder à pergunta do usuário BASEANDO-SE ESTRITA E UNICAMENTE no CONTEXTO fornecido.
-        
-        Se durante a conversa o usuário tiver mencionado seu nome, use esse nome ao iniciar sua resposta para torná-la mais pessoal.
-        
-        NÃO USE nenhum conhecimento prévio ou externo. Sua base de conhecimento está limitada ao que está no CONTEXTO ou na CONVERSA ANTERIOR.
-        
-        CONVERSA ANTERIOR:
-        {chat_history}
-        
-        CONTEXTO:
-        {context}
-        
-        PERGUNTA:
-        {question}
-        
-        INSTRUÇÕES DE FORMATAÇÃO:
-        Siga estritamente as instruções de formatação abaixo para a sua resposta.
-        {format_instructions}
-        """
-
-        self.parser = PydanticOutputParser(pydantic_object=FormattedLLMAnswer)
-        prompt = ChatPromptTemplate.from_template(
-            template=prompt_template,
-            partial_variables={"format_instructions": self.parser.get_format_instructions()},
-        )
-        print(f"Time: {time.time() - time1}")
-
-        db=get_or_build_vectorstore()
-        self.intent_router = IntentRouter(embedding_model=db.embeddings)
-        print(f"Time: {time.time() - time1}")
-        # 6. Configurar retriever (top 3 documentos)
-        retriever = db.as_retriever(search_kwargs={"k": 3})
-        print(f"Time: {time.time() - time1}")
-        # 7. Definir o modelo Groq com LangChain
-        llm = ChatGroq(temperature=0, model="llama-3.1-8b-instant")
-        print(f"Time: {time.time() - time1}")
-
-        # Criar histórico baseado em session_id
-        message_history = MongoDBChatMessageHistory(
-            connection_string=config("MONGO_URL", default="mongodb://localhost:27017"),
-            session_id=session_id,
-            database_name="chat_db",
-            collection_name="chat_history",
-            history_size=10,
-        )
-
-        memory = ConversationBufferMemory(
-            memory_key="chat_history",
-            return_messages=True,
-            chat_memory=message_history,
-            output_key="answer",
-        )
-
-        self.qa_chain = ConversationalRetrievalChain.from_llm(
-            llm=llm,
-            retriever=retriever,
-            memory=memory,
-            return_source_documents=True,
-            combine_docs_chain_kwargs={"prompt": prompt},
-        )
-
-        print(f"Time: {time.time()-time1}")
-
-'''

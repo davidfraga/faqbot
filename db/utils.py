@@ -1,6 +1,4 @@
 import re
-from mongoengine import connect
-from dotenv import load_dotenv
 from models.models import ChatStructure
 
 def load_title_description_pairs(filepath="contexto.md"):

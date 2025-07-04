@@ -1,7 +1,6 @@
 import asyncio
 
 import main
-from db.vectorstore import build_vectorstore
 from core.settings import ChatSettings
 
 update_queue = asyncio.Queue()
