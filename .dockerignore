@@ -1,0 +1,23 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Arquivos de ambiente locais (NUNCA inclua na imagem)
+.env
+.env.*
+
+# IDEs e editores
+.vscode/
+.idea/

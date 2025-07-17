@@ -1,0 +1,35 @@
+name: New Build and Deploy to GKE environment faqbot [homolog]
+
+on:
+  workflow_dispatch:
+    inputs:
+      manuallyJob:
+        description: Execução Manual ?
+        type: boolean
+        default: false
+  pull_request:
+    branches:
+      - homolog
+    types:
+      - closed
+jobs:
+  send-to-starspay-actions-pipeline-api-build-and-deployment:
+    name: Build faqbot homolog mode
+    if: github.event.pull_request.merged == true || github.event.inputs.manuallyJob == 'true'
+    uses: StarsPay/starspay-actions-pipeline/.github/workflows/faqbot-homolog.yml@main
+    with:
+      github_sha: ${{ github.sha }}
+      IMG_PROJECT_ID: devops-tools-442415
+      CLOUD_RUN_PROJECT_ID: grupo-opportunity
+      SERVICE_NAME: faqbot-homolog
+      CLOUD_RUN_ZONE: us-central1
+      IMAGE_NAME: faqbot-homolog
+      repo_name: ${{ github.repository }}
+      branch_name: ${{ github.ref_name }}
+      pr_url: ${{ github.event.pull_request.html_url }}
+      pr_title: ${{ github.event.pull_request.title }}
+      pr_creator: ${{ github.event.pull_request.user.login }}
+      pr_source_branch: ${{ github.event.pull_request.head.ref }}
+      pr_destination_branch: ${{ github.event.pull_request.base.ref }}
+      ambiente: 'homolog'
+    secrets: inherit
