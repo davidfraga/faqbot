@@ -36,6 +36,6 @@ def load_vectorstore():
 
 def get_or_build_vectorstore():
     if os.path.exists(f"{INDEX_PATH}.pkl"):
-        return build_vectorstore() # TODO: replace to load_vector_store
+        return load_vectorstore() # TODO: replace to load_vector_store
     return build_vectorstore()
 

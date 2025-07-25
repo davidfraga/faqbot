@@ -1,0 +1,78 @@
+
+{% extends "layout.html" %}
+
+{% block title %}Meu Perfil{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card card-primary card-outline">
+            <div class="card-body box-profile">
+                <div class="text-center">
+                    <i class="fa fa-user-circle fa-5x text-primary"></i>
+                </div>
+                <h3 class="profile-username text-center">{{ user.username }}</h3>
+                <p class="text-muted text-center">{% if user.email %}{{ user.email }}{% endif %}</p>
+
+                <ul class="list-group list-group-unbordered mb-3">
+                    <li class="list-group-item">
+                        <b>Status</b>
+                        <span class="float-right">
+                            {% if user.active %}
+                                <span class="badge badge-success">Ativo</span>
+                            {% else %}
+                                <span class="badge badge-danger">Inativo</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item">
+                        <b>Tipo</b>
+                        <span class="float-right">
+                            {% if 'admin' in user.roles %}
+                                <span class="badge badge-warning">Administrador</span>
+                            {% else %}
+                                <span class="badge badge-info">Usuário</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item">
+                        <b>Membro desde</b>
+                        <span class="float-right">{{ user.registered_on }}</span>
+                    </li>
+                </ul>
+
+                <div class="text-center">
+                    <a href="/admin/change-password/{{user.id}}" class="btn btn-primary">
+                        <i class="fa fa-key"></i>
+                        Alterar Senha
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Informações da Conta</h3>
+            </div>
+            <div class="card-body">
+                <strong><i class="fa fa-user mr-1"></i> Nome de Usuário</strong>
+                <p class="text-muted">{{ user.username }}</p>
+                <hr>
+
+                <strong><i class="fa fa-envelope mr-1"></i> E-mail</strong>
+                <p class="text-muted">{% if user.email %}{{ user.email }}{% endif %}</p>
+                <hr>
+
+                <strong> Perfis</strong>
+                {% for role in user.roles %}
+                <p class="text-muted">{{ role }}</p>
+                {% endfor %}
+                <hr>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
