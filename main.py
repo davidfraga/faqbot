@@ -1,16 +1,22 @@
+import os
 from contextlib import asynccontextmanager
 from typing import List, Optional
 
-from fastapi import FastAPI, Request, Query
+import starlette_admin
+from decouple import config
+from fastapi import FastAPI, Query
 from mongoengine import connect, Q
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import JSONResponse
+from starlette.staticfiles import StaticFiles
 from telegram import Update
 
+from admin.routes import admin_router
 from core.settings import ChatSettings
+from messengers.telegram_bot import telegram_router
 from models.models import ChatLog
 from serializers.serializers import UserMessage, ChatLogOut
-from admin.admin import admin
+from admin.admin import create_admin
 from starlette.middleware.base import BaseHTTPMiddleware
 
 class HTTPSRedirectMiddlewareCustom(BaseHTTPMiddleware):
@@ -25,11 +31,11 @@ CHAT_SETTINGS = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    connect("default", host="mongodb://mongodb:27017", alias="default")
+    connect(db=config("MONGO_DB_NAME"), host="mongodb://localhost:27017", alias="default")
     global CHAT_SETTINGS
     CHAT_SETTINGS = ChatSettings()
 
-    from messenger.telegram_bot import application
+    from messengers.telegram_bot import application
     await application.initialize()
     app.state.bot_app = application
 
@@ -41,15 +47,16 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 # app.add_middleware(HTTPSRedirectMiddlewareCustom)
 app.add_middleware(SessionMiddleware, secret_key="sua_chave_super_secreta")
-admin.mount_to(app)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+starlette_admin_static_dir = os.path.join(os.path.dirname(starlette_admin.__file__), "statics")
+app.mount("/admin/statics", StaticFiles(directory=starlette_admin_static_dir), name="admin:statics")
 
-@app.post("/webhook/telegram")
-async def telegram_webhook(req: Request):
-    from messenger.telegram_bot import application
-    data = await req.json()
-    update = Update.de_json(data, application.bot)
-    await application.process_update(update)
-    return JSONResponse(content={"ok": True})
+# Rotas da API
+app.include_router(admin_router)
+app.include_router(telegram_router)
+admin = create_admin(app)
+
+
 
 @app.get("/", response_model=List[ChatLogOut])
 def get_history(limit: int = Query(20, ge=1, le=100), search: Optional[str] = None):
@@ -101,7 +108,7 @@ async def lifespan(app: FastAPI):
     connect(db=config("MONGO_DB_NAME"), host=config("MONGO_URL"), alias="default")
     global CHAT_SETTINGS
     CHAT_SETTINGS = ChatSettings()
-    from messenger.telegram_bot import application
+    from messengers.telegram_bot import application
     await application.initialize()
     await application.start()
     # Armazena o bot na instância do app (ou global, se preferir)
@@ -121,7 +128,7 @@ admin.mount_to(app)
 
 @app.post("/webhook/telegram")
 async def telegram_webhook(req: Request):
-    from messenger.telegram_bot import application
+    from messengers.telegram_bot import application
     data = await req.json()
     update = Update.de_json(data, application.bot)
     await application.process_update(update)

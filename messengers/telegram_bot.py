@@ -12,7 +12,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         from core.settings import ChatSettings
         CHAT_SETTINGS = ChatSettings()
     question = update.message.text
-    intention = CHAT_SETTINGS.intent_router.run(question)
+    intention = CHAT_SETTINGS.embeddings.run(question)
     print(intention)
     if intention == "agradecimento":
         result = "Eu é que agradeço, tenha uma ótima semana!"

@@ -1,10 +1,10 @@
 services:
   fastapi:
-    build: ./fastapi_app
+    build: ./faqbot
     ports:
       - "8000:8000"
     volumes:
-      - ./fastapi_app:/app
+      - ./faqbot:/app
     env_file:
       - .env
     depends_on:

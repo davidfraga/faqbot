@@ -3,6 +3,7 @@ uvicorn
 langchain
 langchain-core
 langchain-groq
+langchain-openai
 langchain-community
 langchain-huggingface
 langchain_mongodb
@@ -20,3 +21,4 @@ passlib[bcrypt]
 python-jose
 pyjwt
 itsdangerous
+wtforms

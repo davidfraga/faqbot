@@ -1,9 +1,9 @@
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette_admin.exceptions import FormValidationError, LoginFailed
-from starlette_admin.auth import AdminConfig, AdminUser, AuthProvider, BaseAuthProvider
+from starlette_admin.auth import AdminConfig, AdminUser, AuthProvider
 import jwt
-from admin.utils import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
+from admin.utils import create_access_token, SECRET_KEY, ALGORITHM
 from models.models import User
 
 class AdminAuthProvider(AuthProvider):
@@ -22,12 +22,13 @@ class AdminAuthProvider(AuthProvider):
                 {"username": "Ensure username has at least 03 characters"}
             )
         user = User.objects(username=username).first()
-        if user and user.verify_password(password):
+        if user and user.validate_password(password):
             # Cria o token JWT
             user_roles = [role.value for role in user.roles]
             access_token = create_access_token(data={"sub": user.username, "roles": user_roles})
             # Save username in session
             request.session.update({"username": username, "access_token": access_token})
+            request.state.user = user
 
             return response
 
@@ -60,25 +61,40 @@ class AdminAuthProvider(AuthProvider):
         except jwt.PyJWTError:
             return False
 
-    def get_display_name(self, request: Request) -> str:
+    async def get_display_name(self, request: Request) -> str:
         """
         Exibe o nome do usuário no topo da página do admin.
         """
-        if hasattr(request.state, "user_payload"):
-            return request.state.user_payload.get("sub", "")
-        return "Usuário"
+        try:
+            if hasattr(request.state, "user_payload"):
+                return request.state.user_payload.get("sub", "")
+            return "Usuário"
+        except AttributeError as e:
+            if await self.is_authenticated(request):
+                return await self.get_display_name(request)
+            raise e
 
-    def get_admin_config(self, request: Request) -> AdminConfig:
-        user = request.state.user  # Retrieve current user
-        # Update app title according to current_user
-        custom_app_title = "Hello, " + user.name + "!"
-        # Update logo url according to current_user
-        custom_logo_url = None
-        return AdminConfig(
-            app_title=custom_app_title,
-        )
+    async def get_admin_config(self, request: Request) -> AdminConfig:
+        try:
+            user = request.state.user  # Retrieve current user
+            # Update app title according to current_user
+            custom_app_title = "Hello, " + user.name + "!"
+            # Update logo url according to current_user
+            custom_logo_url = None
+            return AdminConfig(
+                app_title=custom_app_title,
+            )
+        except AttributeError as e:
+            if await self.is_authenticated(request):
+                return await self.get_admin_config(request)
+            raise e
 
-    def get_admin_user(self, request: Request) -> AdminUser:
-        user = request.state.user  # Retrieve current user
-        return AdminUser(username=user.name)
+    async def get_admin_user(self, request: Request) -> AdminUser:
+        try:
+            user = request.state.user  # Retrieve current user
+            return AdminUser(username=user.name)
+        except AttributeError as e:
+            if await self.is_authenticated(request):
+                return await self.get_admin_user(request)
+            raise e
 

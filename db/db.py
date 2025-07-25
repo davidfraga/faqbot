@@ -38,13 +38,4 @@ def get_conversations(limit: int = 10, out_of_context: Optional[bool] = None) ->
     return query[:limit]
 
 
-def analyze_out_of_context_logs() -> None:
-    """
-    Analisa os logs marcados como fora de contexto.
-    Apenas imprime as mensagens para análise futura.
-    """
-    ooc_logs = ChatLog.objects.filter(out_of_context=True).order_by('-timestamp')
-    print(f"Total de mensagens fora de contexto: {ooc_logs.count()}")
-    for log in ooc_logs:
-        print(f"[{log.timestamp}] {log.user_message} -> {log.response}")
 

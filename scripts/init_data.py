@@ -2,25 +2,20 @@ import asyncio
 from mongoengine import connect
 from decouple import config
 
-from models.models import ChatLog
+from models.models import User, pwd_context, Role
 
 connect(db=config("MONGO_DB_NAME"), host=config("MONGO_URL"))
-collection = ChatLog.objects
+
 
 async def insert_data():
-    docs = [
-        {
-            "title": "O que é a BSOG?",
-            "content": "A BSOG (Brazilian Series of Games) é uma plataforma..."
-        },
-        {
-            "title": "Como faço para participar?",
-            "content": "Você deve se cadastrar no site oficial..."
-        }
-    ]
-    await collection.delete_many({})
-    await collection.insert_many(docs)
-    print("Dados inseridos com sucesso.")
+    # Criação de um admin padrão
+    if (config("ADMIN_INITIAL_USERNAME") and config("ADMIN_INITIAL_PASSWORD") and
+            not User.objects(username=config("ADMIN_INITIAL_USERNAME")).first()):
+        User(username=config("ADMIN_INITIAL_USERNAME"), password=pwd_context.hash(config("ADMIN_INITIAL_PASSWORD")),
+             name="Admin", email="email@email.com", roles=[Role.ADMIN]).save()
+        print("usuário ADMIN criado com sucesso.")
+    else:
+        print("NADA ALTERADO para o usuário ADMIN.")
 
 if __name__ == "__main__":
     asyncio.run(insert_data())

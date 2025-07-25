@@ -7,7 +7,7 @@ from langchain.docstore.document import Document
 from db.utils import load_title_description_pairs, save_new_entries_to_mongo
 from models.models import ChatStructure
 
-INDEX_PATH = "faiss_index"
+FAISS_INDEX_NAME = "faiss_index"
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 def build_vectorstore():
@@ -25,17 +25,17 @@ def build_vectorstore():
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
     vectorstore: FAISS = FAISS.from_documents(docs, embeddings)
 
-    with open(f"{INDEX_PATH}.pkl", "wb") as f:
-        pickle.dump(vectorstore, f)
+    vectorstore.save_local(os.getcwd(),FAISS_INDEX_NAME)
 
     return vectorstore
 
 def load_vectorstore():
-    with open(f"{INDEX_PATH}.pkl", "rb") as f:
-        return pickle.load(f)
+    vectorstore = FAISS.load_local(folder_path=os.getcwd(), index_name=FAISS_INDEX_NAME,
+                     embeddings=HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL), allow_dangerous_deserialization=True)
+    return vectorstore
 
 def get_or_build_vectorstore():
-    if os.path.exists(f"{INDEX_PATH}.pkl"):
-        return load_vectorstore() # TODO: replace to load_vector_store
+    if os.path.exists(f"{FAISS_INDEX_NAME}.pkl"):
+        return load_vectorstore()
     return build_vectorstore()
 
