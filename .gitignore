@@ -5,3 +5,6 @@ __pycache__/
 *.pkl
 .env.development
 *.faiss
+.env.dev
+.env/
+./env

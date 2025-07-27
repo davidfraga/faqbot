@@ -4,7 +4,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
 from admin.utils import get_current_user
-from models.models import User, get_user_by_id
+from models.models import User
 from mongoengine.errors import ValidationError
 
 admin_router = APIRouter(prefix="/admin", tags=["admin"])

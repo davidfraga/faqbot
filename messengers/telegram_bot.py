@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, Request
 from starlette.responses import JSONResponse
 from telegram import Update
@@ -24,15 +26,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(result)
 
 # Inicializa o bot
-application = ApplicationBuilder().token(config("TELEGRAM_TOKEN")).build()
-application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+application = Optional[None]
+if config("TELEGRAM_TOKEN"):
+    ApplicationBuilder().token(config("TELEGRAM_TOKEN")).build()
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 telegram_router = APIRouter()
 
 @telegram_router.post("/webhook/telegram")
 async def telegram_webhook(req: Request):
     data = await req.json()
-    update = Update.de_json(data, application.bot)
-    await application.process_update(update)
+    if application:
+        update = Update.de_json(data, application.bot)
+        await application.process_update(update)
     return JSONResponse(content={"ok": True})
 

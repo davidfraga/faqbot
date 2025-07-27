@@ -8,6 +8,12 @@ from mongoengine import Document, StringField, BooleanField, DateTimeField, List
 from passlib.context import CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+class Role(str, enum.Enum):
+    VIEWER = "viewer"
+    ADMIN = "admin"
+
+
+
 class ChatLog(Document):
     user_message = StringField(required=True)
     response = StringField()

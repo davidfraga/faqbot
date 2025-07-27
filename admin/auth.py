@@ -1,9 +1,10 @@
+from decouple import config
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette_admin.exceptions import FormValidationError, LoginFailed
 from starlette_admin.auth import AdminConfig, AdminUser, AuthProvider
 import jwt
-from admin.utils import create_access_token, SECRET_KEY, ALGORITHM
+from admin.utils import create_access_token
 from models.models import User
 
 class AdminAuthProvider(AuthProvider):
@@ -53,7 +54,7 @@ class AdminAuthProvider(AuthProvider):
         try:
             # Remove o prefixo "Bearer "
             #token = token.split(" ")[1]
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, config("JWT_SECRET_KEY"), algorithms=[ALGORITHM])
             # Armazena o payload no estado da requisição para uso posterior (ex: autorização)
             request.state.user_payload = payload
             request.state.user = User.objects(username=payload["sub"]).first()
