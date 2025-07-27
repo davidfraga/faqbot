@@ -1,12 +1,16 @@
 services:
   fastapi:
-    build: ./faqbot
+    build:
+      context: ./faqbot  # Caminho para a pasta com o Dockerfile
+      args:
+        - MONGO_DB_NAME=${MONGO_DB_NAME}
+        - MONGO_URL=${MONGO_URL}
     ports:
       - "8000:8000"
     volumes:
       - ./faqbot:/app
     env_file:
-      - .env
+      - ./faqbot/.env
     depends_on:
       - mongodb
 
