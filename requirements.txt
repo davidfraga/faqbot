@@ -20,9 +20,5 @@ starlette-admin
 passlib[bcrypt]
 python-jose
 pyjwt
-<<<<<<< HEAD
 itsdangerous
 wtforms
-=======
-itsdangerous
->>>>>>> ff8b60d8bad4fe7821f17ff9256f84574e657d6e
