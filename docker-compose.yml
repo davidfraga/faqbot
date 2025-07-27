@@ -5,6 +5,8 @@ services:
       args:
         - MONGO_DB_NAME=${MONGO_DB_NAME}
         - MONGO_URL=${MONGO_URL}
+        - ADMIN_INITIAL_USERNAME=${ADMIN_INITIAL_USERNAME}
+        - ADMIN_INITIAL_PASSWORD=${ADMIN_INITIAL_PASSWORD}
     ports:
       - "8000:8000"
     volumes:
