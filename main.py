@@ -50,10 +50,11 @@ async def lifespan(app: FastAPI):
             CHAT_SETTINGS = ChatSettings()
 
             from messengers.telegram_bot import application
+            print("Initializing telegram bot application...")
             await application.initialize()
             app.state.bot_app = application
 
-            print("INFO:     Conexão com o banco e inicialização da aplicação concluídas com sucesso.")
+            print("INFO: Conexão com o banco e inicialização da aplicação concluídas com sucesso.")
 
         except ConnectionFailure as e:
             print(f"ERRO CRÍTICO: Falha ao conectar ao MongoDB. A aplicação pode não funcionar corretamente. Erro: {e}")

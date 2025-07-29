@@ -26,8 +26,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(result)
 
 # Inicializa o bot
-application = Optional[None]
-if config("TELEGRAM_TOKEN"):
+application = None
+if config("TELEGRAM_TOKEN") and not application:
+    print("Starting telegram bot by token...")
     application = ApplicationBuilder().token(config("TELEGRAM_TOKEN")).build()
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
@@ -36,6 +37,7 @@ telegram_router = APIRouter()
 @telegram_router.post("/webhook/telegram")
 async def telegram_webhook(req: Request):
     data = await req.json()
+    global application
     if application:
         update = Update.de_json(data, application.bot)
         await application.process_update(update)
