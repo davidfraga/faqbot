@@ -12,9 +12,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.now(UTC) + timedelta(minutes=config("JWT_ACCESS_TOKEN_EXPIRE_MINUTES",cast=int))
+    expire = datetime.now(UTC) + timedelta(minutes=config("ACCESS_TOKEN_EXPIRE_MINUTES",cast=int))
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, config("JWT_SECRET_KEY"), algorithm=config("JWT_ALGORITHM"))
+    return jwt.encode(to_encode, config("JWT_SECRET_KEY"), algorithm=config("ALGORITHM"))
 
 
 async def get_current_user(request: Request):
@@ -31,7 +31,7 @@ async def get_current_user(request: Request):
         return None #raise credentials_exception
 
     try:
-        payload = jwt.decode(token, config("JWT_SECRET_KEY"), algorithms=[config("JWT_ALGORITHM")])
+        payload = jwt.decode(token, config("JWT_SECRET_KEY"), algorithms=[config("ALGORITHM")])
     except: # Token inválido
         return None #raise credentials_exception
 

@@ -28,7 +28,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Inicializa o bot
 application = Optional[None]
 if config("TELEGRAM_TOKEN"):
-    ApplicationBuilder().token(config("TELEGRAM_TOKEN")).build()
+    application = ApplicationBuilder().token(config("TELEGRAM_TOKEN")).build()
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 telegram_router = APIRouter()

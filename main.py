@@ -16,6 +16,9 @@ from serializers.serializers import UserMessage, ChatLogOut
 from admin.admin import create_admin
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from dotenv import load_dotenv
+load_dotenv()
+
 class HTTPSRedirectMiddlewareCustom(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         # Rewrite the scheme to https (forcing URLs to be HTTPS)

@@ -145,7 +145,7 @@ async def user_profile(
     if not current_user:
         return RedirectResponse(url="/admin/login", status_code=302)
     return templates.TemplateResponse(
-        "admin/profile.html",
+        "profile.html",
         {
             "request": request,
             "user": current_user,

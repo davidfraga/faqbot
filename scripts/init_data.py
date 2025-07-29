@@ -4,7 +4,7 @@ from decouple import config
 
 from models.models import User, pwd_context, Role
 
-connect(db=config("MONGO_DB_NAME"), host=config("MONGO_URL"))
+connect(db=config("MONGO_DB_NAME"), host=config("MONGO_URL"), alias="default")
 
 
 async def insert_data():

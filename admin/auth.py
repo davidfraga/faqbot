@@ -54,7 +54,7 @@ class AdminAuthProvider(AuthProvider):
         try:
             # Remove o prefixo "Bearer "
             #token = token.split(" ")[1]
-            payload = jwt.decode(token, config("JWT_SECRET_KEY"), algorithms=[ALGORITHM])
+            payload = jwt.decode(token, config("JWT_SECRET_KEY"), algorithms=[config("ALGORITHM")])
             # Armazena o payload no estado da requisição para uso posterior (ex: autorização)
             request.state.user_payload = payload
             request.state.user = User.objects(username=payload["sub"]).first()

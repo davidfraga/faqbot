@@ -72,7 +72,7 @@ class ProfileAdminView(CustomView):
     name = "Meu Perfil"
     label = "Perfil"
     icon = "fa fa-user"
-    template = "admin/profile.html"
+    template = "profile.html"
 
     async def render(self, request: Request, templates):
         user = request.state.user

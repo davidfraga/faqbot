@@ -1,7 +1,7 @@
 services:
   fastapi:
     build:
-      context: ./faqbot  # Caminho para a pasta com o Dockerfile
+      context: ./faqbot
       args:
         - MONGO_DB_NAME=${MONGO_DB_NAME}
         - MONGO_URL=${MONGO_URL}
@@ -11,8 +11,13 @@ services:
       - "8000:8000"
     volumes:
       - ./faqbot:/app
+      - model_cache:/app/cache
     env_file:
       - ./faqbot/.env
+    environment:
+      - HF_HOME=/app/cache/huggingface
+      - SENTENCE_TRANSFORMERS_HOME=/app/cache/sentence_transformers
+      - HF_HUB_CACHE=/app/cache/huggingface/hub
     depends_on:
       - mongodb
 
@@ -27,3 +32,4 @@ services:
 
 volumes:
   mongo_data:
+  model_cache:
